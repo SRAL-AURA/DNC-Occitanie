@@ -6,10 +6,10 @@
   },
   "demarches": [
     {
-      "number": 121950,
-      "name": "Démarche Nord",
-      "api_token": "${DEMARCHES_API_TOKEN_NORD}",
-      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "number": 135754,
+      "name": "DDT81",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
       "enabled": true,
       "sync_config": {
         "batch_size": 50,
@@ -24,10 +24,10 @@
       }
     },
     {
-      "number": 122643,
-      "name": "Démarche Pas-de-Calais",
-      "api_token": "${DEMARCHES_API_TOKEN_PASDECALAIS}",
-      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "number": 135749,
+      "name": "DDTM66",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
       "enabled": true,
       "sync_config": {
         "batch_size": 50,
@@ -42,10 +42,10 @@
       }
     },
     {
-      "number": 121821,
-      "name": "Démarche Aisne",
-      "api_token": "${DEMARCHES_API_TOKEN_AISNE}",
-      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "number": 135748,
+      "name": "DDT65",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
       "enabled": true,
       "sync_config": {
         "batch_size": 50,
@@ -60,10 +60,10 @@
       }
     },
     {
-      "number": 122504,
-      "name": "Démarche Oise",
-      "api_token": "${DEMARCHES_API_TOKEN_OISE}",
-      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "number": 135747,
+      "name": "DDTM34",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
       "enabled": true,
       "sync_config": {
         "batch_size": 50,
@@ -78,10 +78,64 @@
       }
     },
     {
-      "number": 121377,
-      "name": "Démarche Somme",
-      "api_token": "${DEMARCHES_API_TOKEN_SOMME}",
-      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "number": 135745,
+      "name": "DDT32",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 2,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    },
+    {
+      "number": 135744,
+      "name": "DDT31",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 2,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    },
+    {
+      "number": 135743,
+      "name": "DDTM11",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 2,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    },
+    {
+      "number": 135742,
+      "name": "DDT09",
+      "api_token": "${API_TOKEN_DNC}",
+      "api_url": "https://demarche.numerique.gouv.fr/api/v2/graphql",
       "enabled": true,
       "sync_config": {
         "batch_size": 50,
@@ -103,5 +157,4 @@
   "logging": {
     "level": "INFO"
   }
-
 }
