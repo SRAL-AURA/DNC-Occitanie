@@ -151,7 +151,7 @@
     }
   ],
   "scheduling": {
-    "default_cron": "0 21 * * *",
+    "default_cron": "0 23 * * *",
     "timezone": "Europe/Paris"
   },
   "logging": {
