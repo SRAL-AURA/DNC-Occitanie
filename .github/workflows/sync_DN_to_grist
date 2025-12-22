@@ -4,7 +4,7 @@ on:
   # Exécution programmée (tous les jours à 23h00 UTC = 01h00 heure d'été française)
   schedule:
     - cron: '0 23 * * *'
-  
+
   # Permettre l'exécution manuelle avec options
   workflow_dispatch:
     inputs:
@@ -30,22 +30,22 @@ jobs:
     outputs:
       config-valid: ${{ steps.validate.outputs.valid }}
       demarches-count: ${{ steps.validate.outputs.count }}
-    
+
     steps:
     - name: Checkout du code
       uses: actions/checkout@v4
-    
+
     - name: Configuration Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         cache: 'pip'
-    
+
     - name: Installation des dépendances
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    
+
     - name: Validation de la configuration
       id: validate
       env:
@@ -53,33 +53,29 @@ jobs:
         GRIST_BASE_URL: ${{ secrets.GRIST_BASE_URL }}
         GRIST_API_KEY: ${{ secrets.GRIST_API_KEY }}
         GRIST_DOC_ID: ${{ secrets.GRIST_DOC_ID }}
-        
+
         # Tokens API par démarche
-        DEMARCHES_API_TOKEN_NORD: ${{ secrets.DEMARCHES_API_TOKEN_NORD }}
-        DEMARCHES_API_TOKEN_PASDECALAIS: ${{ secrets.DEMARCHES_API_TOKEN_PASDECALAIS }}
-        DEMARCHES_API_TOKEN_AISNE: ${{ secrets.DEMARCHES_API_TOKEN_AISNE }}
-        DEMARCHES_API_TOKEN_OISE: ${{ secrets.DEMARCHES_API_TOKEN_OISE }}
-        DEMARCHES_API_TOKEN_SOMME: ${{ secrets.DEMARCHES_API_TOKEN_SOMME }}
+        API_TOKEN_DNC: ${{ secrets.API_TOKEN_DNC }}
       run: |
         echo "🔍 Validation de la configuration multi-démarche..."
         python multi_demarche_manager.py --validate-only
-        
+
         # Récupérer le statut et le nombre de démarches
         python -c "
         from multi_demarche_manager import MultiDemarcheManager
         import sys
         import os
-        
+
         try:
             manager = MultiDemarcheManager()
             valid = manager.validate_configuration()
             enabled_count = len(manager.get_enabled_demarches())
-            
+
             # Nouvelle syntaxe GitHub Actions
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
                 f.write(f'valid={str(valid).lower()}\n')
                 f.write(f'count={enabled_count}\n')
-            
+
             if not valid:
                 sys.exit(1)
         except Exception as e:
@@ -95,25 +91,25 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-config
     if: needs.validate-config.outputs.config-valid == 'true'
-    
+
     steps:
     - name: Checkout du code
       uses: actions/checkout@v4
-    
+
     - name: Configuration Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         cache: 'pip'
-    
+
     - name: Installation des dépendances
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    
+
     - name: Création du répertoire de logs
       run: mkdir -p logs
-    
+
     - name: Affichage des paramètres d'exécution
       run: |
         echo "📋 Paramètres d'exécution :"
@@ -122,40 +118,36 @@ jobs:
         echo "  - Force sync : ${{ github.event.inputs.force_sync || 'false' }}"
         echo "  - Mode test : ${{ github.event.inputs.dry_run || 'false' }}"
         echo "  - Déclencheur : ${{ github.event_name }}"
-    
+
     - name: Synchronisation multi-démarche
       env:
         # Configuration Grist
         GRIST_BASE_URL: ${{ secrets.GRIST_BASE_URL }}
         GRIST_API_KEY: ${{ secrets.GRIST_API_KEY }}
         GRIST_DOC_ID: ${{ secrets.GRIST_DOC_ID }}
-        
+
         # Tokens API par démarche
-        DEMARCHES_API_TOKEN_NORD: ${{ secrets.DEMARCHES_API_TOKEN_NORD }}
-        DEMARCHES_API_TOKEN_PASDECALAIS: ${{ secrets.DEMARCHES_API_TOKEN_PASDECALAIS }}
-        DEMARCHES_API_TOKEN_AISNE: ${{ secrets.DEMARCHES_API_TOKEN_AISNE }}
-        DEMARCHES_API_TOKEN_OISE: ${{ secrets.DEMARCHES_API_TOKEN_OISE }}
-        DEMARCHES_API_TOKEN_SOMME: ${{ secrets.DEMARCHES_API_TOKEN_SOMME }}
-        
+        API_TOKEN_DNC: ${{ secrets.API_TOKEN_DNC }}
+
         # Paramètres d'exécution
         DEMARCHE_NUMBERS: ${{ github.event.inputs.demarche_numbers }}
         FORCE_SYNC: ${{ github.event.inputs.force_sync }}
         DRY_RUN: ${{ github.event.inputs.dry_run }}
-        
+
         # Configuration de logging
         LOG_LEVEL: INFO
       run: |
         echo "🚀 Démarrage de la synchronisation multi-démarche"
-        
+
         # Construire la commande
         CMD="python multi_demarche_manager.py"
-        
+
         # Mode test
         if [ "$DRY_RUN" = "true" ]; then
           CMD="$CMD --dry-run"
           echo "🧪 Mode test activé"
         fi
-        
+
         # Démarches spécifiques
         if [ -n "$DEMARCHE_NUMBERS" ]; then
           CMD="$CMD --demarches $DEMARCHE_NUMBERS"
@@ -163,19 +155,19 @@ jobs:
         else
           echo "📋 Synchronisation de toutes les démarches activées"
         fi
-        
+
         # Force sync
         if [ "$FORCE_SYNC" = "true" ]; then
           CMD="$CMD --force"
           echo "⚡ Mode force activé"
         fi
-        
+
         # Afficher la commande finale
         echo "Commande : $CMD"
-        
+
         # Exécuter
         eval $CMD
-    
+
     - name: Upload des logs
       if: always()
       uses: actions/upload-artifact@v4
@@ -184,7 +176,7 @@ jobs:
         path: logs/
         retention-days: 30
         if-no-files-found: ignore
-    
+
     - name: Notification de fin
       if: always()
       run: |
@@ -202,7 +194,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-config, sync-demarches]
     if: always()
-    
+
     steps:
     - name: Notification webhook (optionnelle)
       continue-on-error: true
@@ -211,7 +203,7 @@ jobs:
         if [ -n "${{ secrets.NOTIFICATION_WEBHOOK_URL }}" ]; then
           STATUS="${{ needs.sync-demarches.result }}"
           DEMARCHES_COUNT="${{ needs.validate-config.outputs.demarches-count }}"
-          
+
           if [ "$STATUS" = "success" ]; then
             MESSAGE="✅ Synchronisation multi-démarche réussie ($DEMARCHES_COUNT démarches)"
             COLOR="good"
@@ -219,57 +211,35 @@ jobs:
             MESSAGE="❌ Synchronisation multi-démarche échouée"
             COLOR="danger"
           fi
-          
+
           curl -X POST -H 'Content-type: application/json' \
           --data "{\"text\":\"$MESSAGE\",\"color\":\"$COLOR\"}" \
           ${{ secrets.NOTIFICATION_WEBHOOK_URL }}
-          
+
           echo "📧 Notification webhook envoyée"
         else
           echo "📧 Aucun webhook configuré, notification ignorée"
         fi
-    
+
     - name: Notification email (optionnelle)
       continue-on-error: true
       run: |
         # Ne s'exécute que si les paramètres email sont définis
         if [ -n "${{ secrets.NOTIFICATION_EMAIL_TO }}" ] && [ -n "${{ secrets.SMTP_SERVER }}" ]; then
           echo "📧 Configuration email détectée, envoi de la notification..."
-          
+
           # Utiliser curl pour envoyer l'email via API ou un service tiers
           # Ou installer et utiliser un client email simple
           echo "STATUS: ${{ needs.sync-demarches.result }}"
           echo "DEMARCHES: ${{ needs.validate-config.outputs.demarches-count }}"
           echo "URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
+
           # Pour une vraie notification email, vous pouvez:
           # 1. Utiliser un service comme SendGrid, Mailgun, etc.
           # 2. Ou configurer un webhook vers votre propre service
           # 3. Ou utiliser l'action email (voir commentaire ci-dessous)
-          
+
           echo "📧 Notification email préparée (implémentation à personnaliser)"
         else
           echo "📧 Aucun paramètre email configuré, notification ignorée"
         fi
-
-    # Alternative: Utiliser l'action email (décommentez si vous voulez l'utiliser)
-    # - name: Send email notification
-    #   if: always()
-    #   continue-on-error: true
-    #   uses: dawidd6/action-send-mail@v3.12.0
-    #   with:
-    #     server_address: ${{ secrets.SMTP_SERVER }}
-    #     server_port: ${{ secrets.SMTP_PORT }}
-    #     username: ${{ secrets.SMTP_USERNAME }}
-    #     password: ${{ secrets.SMTP_PASSWORD }}
-    #     subject: "Synchronisation DS→Grist : ${{ needs.sync-demarches.result }}"
-    #     body: |
-    #       Synchronisation multi-démarche terminée
-    #       
-    #       Statut : ${{ needs.sync-demarches.result }}
-    #       Démarches configurées : ${{ needs.validate-config.outputs.demarches-count }}
-    #       Exécution : ${{ github.run_number }}
-    #       
-    #       Voir les détails : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-    #     to: ${{ secrets.NOTIFICATION_EMAIL_TO }}
-    #     from: ${{ secrets.NOTIFICATION_EMAIL_FROM }}
