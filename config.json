@@ -1,0 +1,107 @@
+{
+  "grist": {
+    "base_url": "${GRIST_BASE_URL}",
+    "api_key": "${GRIST_API_KEY}",
+    "doc_id": "${GRIST_DOC_ID}"
+  },
+  "demarches": [
+    {
+      "number": 121950,
+      "name": "Démarche Nord",
+      "api_token": "${DEMARCHES_API_TOKEN_NORD}",
+      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 3,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    },
+    {
+      "number": 122643,
+      "name": "Démarche Pas-de-Calais",
+      "api_token": "${DEMARCHES_API_TOKEN_PASDECALAIS}",
+      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 2,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    },
+    {
+      "number": 121821,
+      "name": "Démarche Aisne",
+      "api_token": "${DEMARCHES_API_TOKEN_AISNE}",
+      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 2,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    },
+    {
+      "number": 122504,
+      "name": "Démarche Oise",
+      "api_token": "${DEMARCHES_API_TOKEN_OISE}",
+      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 3,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    },
+    {
+      "number": 121377,
+      "name": "Démarche Somme",
+      "api_token": "${DEMARCHES_API_TOKEN_SOMME}",
+      "api_url": "https://www.demarches-simplifiees.fr/api/v2/graphql",
+      "enabled": true,
+      "sync_config": {
+        "batch_size": 50,
+        "max_workers": 2,
+        "parallel": true
+      },
+      "filters": {
+        "date_depot_debut": "",
+        "date_depot_fin": "",
+        "statuts_dossiers": [],
+        "groupes_instructeurs": []
+      }
+    }
+  ],
+  "scheduling": {
+    "default_cron": "0 21 * * *",
+    "timezone": "Europe/Paris"
+  },
+  "logging": {
+    "level": "INFO"
+  }
+
+}
