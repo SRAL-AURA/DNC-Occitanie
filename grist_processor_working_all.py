@@ -949,6 +949,7 @@ class GristClient:
             # Chercher les enregistrements avec dossier_number ou number
             dossier_dict = {}
             if 'records' in data and isinstance(data['records'], list):
+
                 for record in data['records']:
                     if isinstance(record, dict) and 'fields' in record and isinstance(record['fields'], dict):
                         record_id = record.get('id')
@@ -1820,13 +1821,15 @@ def process_demarche_for_grist(client, demarche_number):
                         log(f"  Traitement du bloc '{block_label}': {len(rows)} lignes")
                         
                         try:
-                            from repetable_processor import process_repetable_data_batch
-                            success, errors = process_repetable_data_batch(
+                            from repetable_processor import process_repetables_batch
+    
+                            success, errors = process_repetables_batch(
                                 client,
-                                None,  # Pas besoin de dossier_data ici
-                                block_table_id,
-                                column_types["repetable_blocks"][normalized_block]["columns"],
-                                problematic_descriptor_ids
+                                dossier_batch_data,  # ✅ Passer les dossiers
+                                {normalized_block: block_table_id},
+                                {normalized_block: column_types["repetable_blocks"][normalized_block]},
+                                problematic_ids=problematic_descriptor_ids,
+                                batch_size=50
                             )
                             total_success_rep += success
                             total_errors_rep += errors
