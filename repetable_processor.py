@@ -723,13 +723,13 @@ def get_existing_repetable_rows_improved_no_filter(client, table_id, dossier_num
                 record_id = record['id']
                 
                 # Vérifier que les champs requis sont présents
-                if all(key in fields for key in ['dossier_number', 'block_label']):
+                if 'dossier_number' in fields:
                     # Filtrer par dossier si un dossier_number est spécifié
                     if dossier_number is not None and str(fields['dossier_number']) != str(dossier_number):
                         continue
                         
                     current_dossier_number = str(fields['dossier_number'])
-                    block_label = fields['block_label']
+                    block_label = fields.get('block_label', '')  # ✅ Optionnel
                     
                     # Utiliser block_row_id s'il est disponible, sinon block_row_index
                     if 'block_row_id' in fields and fields['block_row_id']:
@@ -789,11 +789,13 @@ def get_existing_repetable_rows_improved_no_filter(client, table_id, dossier_num
                                 geo_key_alt = f"{current_dossier_number}_{block_label}_{base_id}_geo{geo_index}"
                                 records_dict[geo_key_alt.lower()] = record_id
         
-        # Afficher des statistiques détaillées sur les lignes trouvées pour ce dossier
-        filtered_count = sum(1 for key in records_dict.keys() if key.startswith(f"{dossier_number}_"))
-        log(f"  {filtered_count} clés d'identification trouvées pour les lignes de blocs répétables du dossier {dossier_number}")
-    
-    return records_dict
+        # Afficher des statistiques détaillées sur les lignes trouvées
+        if dossier_number is not None:
+            filtered_count = sum(1 for key in records_dict.keys() if key.startswith(f"{dossier_number}_"))
+            log(f"  {filtered_count} clés d'identification trouvées pour les lignes de blocs répétables du dossier {dossier_number}")
+        else:
+            log(f"  {len(records_dict)} clés d'identification trouvées pour tous les blocs répétables")
+            return records_dict
 
 def process_repetables_for_grist(client, dossier_data, table_id, column_types, problematic_ids=None):
     """
@@ -1290,6 +1292,15 @@ def process_repetables_batch(client, dossiers_data, table_ids_dict, column_types
     """
     total_success = 0
     total_errors = 0
+
+     # ✅ NOUVEAU : Récupérer TOUTES les lignes existantes AVANT la boucle
+    existing_rows_by_block = {}
+    for block_key, table_id in table_ids_dict.items():
+        existing_rows_by_block[block_key] = get_existing_repetable_rows_improved_no_filter(
+            client, 
+            table_id,
+            None  # ✅ None = récupérer TOUTES les lignes de tous les dossiers
+        )
     
     # Grouper les dossiers et extraire les lignes par bloc
     rows_by_block = {}  # {block_label_normalized: {"to_update": [], "to_create": [], "existing_rows": {}}}
@@ -1318,15 +1329,12 @@ def process_repetables_batch(client, dossiers_data, table_ids_dict, column_types
                     log_verbose(f"Bloc '{block_label}' ignoré (pas de table)")
                     continue
                 
-                # Initialiser si nécessaire
+                # ✅ MODIFIÉ : Utiliser le dictionnaire pré-chargé
                 if normalized_block not in rows_by_block:
                     rows_by_block[normalized_block] = {
                         "to_update": [],
                         "to_create": [],
-                        "existing_rows": get_existing_repetable_rows_improved_no_filter(
-                            client, 
-                            table_ids_dict[normalized_block]
-                        )
+                        "existing_rows": existing_rows_by_block.get(normalized_block, {})  # ✅ Utiliser le cache
                     }
                 
                 # Obtenir les types de colonnes pour ce bloc
