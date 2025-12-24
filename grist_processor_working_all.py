@@ -66,7 +66,7 @@ def log_schema_improvements(schema, demarche_number):
         log("Métadonnées enrichies disponibles")
 
 # Fonction pour supprimer les accents d'une chaîne de caractères
-def normalize_column_name(name, max_length=50):
+def normalize_column_name(name, max_length=150):
     """
     Normalise un nom de colonne pour Grist en garantissant des identifiants valides.
     Supprime les espaces en début, fin et les espaces consécutifs.
@@ -1348,6 +1348,7 @@ class GristClient:
         to_update = []
         
         for row_dict in dossiers_list:
+
             # Filtrer les colonnes qui existent dans la table
             filtered_row_dict = {}
             for key, value in row_dict.items():
@@ -2319,7 +2320,6 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
             
             # Créer les colonnes UNE SEULE FOIS après la préparation
             if table_ids.get("annotations"):
-                log(f"[DEBUG] Nombre d'annotations passées: {len(all_annotations_for_columns)}")
                 
                 # ✅ DÉDUPLICATION : Ne garder qu'une annotation par label unique
                 unique_annotations = {}
@@ -2329,7 +2329,6 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                         unique_annotations[label] = ann
                 
                 unique_annotations_list = list(unique_annotations.values())
-                log(f"[DEBUG] Nombre de labels UNIQUES: {len(unique_annotations_list)}")
                 
                 add_id_columns_based_on_annotations(
                     client, 
