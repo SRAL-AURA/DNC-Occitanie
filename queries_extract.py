@@ -160,8 +160,6 @@ def extract_champ_values(champ: Dict[str, Any], prefix: str = "", original_id: s
                             clean_label = col_label.replace('.', '')
                             full_label = clean_label.replace('–', '').replace('-', ' ')
 
-                        print(f"DEBUG: Envoi FORCE vers : {full_label}")
-
                         result.append({
                             "id": col.get("id"),
                             "numeric_id": None,
@@ -404,7 +402,7 @@ def extract_champ_values(champ: Dict[str, Any], prefix: str = "", original_id: s
             if departement:
                 json_value["departement"] = departement
             
-            # ✅ NOUVEAU : Ajouter le nom de la commune comme champ séparé
+            # Ajouter le nom de la commune
             if name:
                 result.append({
                     "id": champ.get("id") + "_nom",
@@ -421,7 +419,7 @@ def extract_champ_values(champ: Dict[str, Any], prefix: str = "", original_id: s
                     "row_id": original_id if original_id != champ["id"] else None
                 })
 
-            # ✅ MODIFIÉ : code_postal au lieu de "- code postal"
+            # code_postal
             if postal_code:
                 result.append({
                     "id": champ.get("id") + "_code_postal",
@@ -438,7 +436,7 @@ def extract_champ_values(champ: Dict[str, Any], prefix: str = "", original_id: s
                     "row_id": original_id if original_id != champ["id"] else None
                 })
             
-            # ✅ MODIFIÉ : departement (nom) au lieu de "- département"
+            # departement (nom)
             if dept_name:
                 result.append({
                     "id": champ.get("id") + "_departement",
@@ -455,7 +453,7 @@ def extract_champ_values(champ: Dict[str, Any], prefix: str = "", original_id: s
                     "row_id": original_id if original_id != champ["id"] else None
                 })
             
-            # ✅ MODIFIÉ : code_insee au lieu de "- Code INSEE"
+            # code_insee
             if code_insee:
                 result.append({
                     "id": champ.get("id") + "_code_insee",
@@ -471,7 +469,8 @@ def extract_champ_values(champ: Dict[str, Any], prefix: str = "", original_id: s
                     "prefilled": champ.get("prefilled", False),
                     "row_id": original_id if original_id != champ["id"] else None
                 })
-            # ✅ NOUVEAU : Ajouter le code département
+            
+            # ✅ CODE DÉPARTEMENT - UNE SEULE FOIS
             if dept_code:
                 result.append({
                     "id": champ.get("id") + "_code_departement",
