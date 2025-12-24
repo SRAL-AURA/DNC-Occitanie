@@ -435,7 +435,7 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
     # Colonnes fixes pour la table des dossiers
     dossier_columns = [
         {"id": "dossier_id", "type": "Text"},
-        {"id": "number", "type": "Int"},
+        {"id": "dossier_number", "type": "Int"},
         {"id": "state", "type": "Text"},
         {"id": "date_depot", "type": "DateTime"},
         {"id": "date_derniere_modification", "type": "DateTime"},
