@@ -173,7 +173,7 @@ def detect_column_types_from_multiple_dossiers(dossiers_data, problematic_ids=No
     # Colonnes fixes pour la table des dossiers
     dossier_columns = [
         {"id": "dossier_id", "type": "Text"},
-        {"id": "number", "type": "Int"},
+        {"id": "dossier_number", "type": "Int"},
         {"id": "state", "type": "Text"},
         {"id": "date_depot", "type": "DateTime"},
         {"id": "date_derniere_modification", "type": "DateTime"},
@@ -2175,8 +2175,8 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                     
                     dossier_record[field_id] = format_value_for_grist(value, field_type)
                 
-                if "number" not in dossier_record:
-                    dossier_record["number"] = dossier_num
+                if "dossier_number" not in dossier_record:
+                    dossier_record["dossier_number"] = dossier_num
                 
                 # Préparer champ_record
                 champ_record = {"dossier_number": dossier_num}
