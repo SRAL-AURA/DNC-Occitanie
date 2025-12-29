@@ -1,5 +1,8 @@
 import requests
 import json
+from requests.adapters import HTTPAdapter  # ✅ NOUVEAU
+from urllib3.util.retry import Retry  # ✅ NOUVEAU
+import time  # ✅ NOUVEAU
 from typing import Dict, Any, List, Optional
 from queries_config import API_TOKEN, API_URL
 
@@ -544,6 +547,34 @@ fragment DossierFragment on Dossier {
 
 """ + COMMON_FRAGMENTS + SPECIALIZED_FRAGMENTS + CHAMP_FRAGMENTS
 
+# ✅ SESSION GLOBALE (créée une seule fois)
+_session = None
+
+def get_session_with_retries():
+    """
+    Retourne une session HTTP avec retry (singleton).
+    La session est créée une seule fois et réutilisée.
+    """
+    global _session
+    
+    if _session is None:
+        print("[RETRY] Création session avec retry automatique (3 tentatives, backoff 1s)")
+        _session = requests.Session()
+        
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["GET", "POST"],
+            raise_on_status=False
+        )
+        
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        _session.mount("https://", adapter)
+        _session.mount("http://", adapter)
+    
+    return _session
+
 # Fonctions d'API
 def get_dossier(dossier_number: int) -> Dict[str, Any]:
     """
@@ -571,7 +602,8 @@ def get_dossier(dossier_number: int) -> Dict[str, Any]:
     }
     
     # Exécution de la requête
-    response = requests.post(
+    session = get_session_with_retries()
+    response = session.post(
         API_URL,
         json={"query": query_get_dossier, "variables": variables},
         headers=headers
@@ -654,8 +686,9 @@ def get_demarche(demarche_number: int) -> Dict[str, Any]:
         "Authorization": f"Bearer {API_TOKEN}",
         "Content-Type": "application/json"
     }
-    
-    response = requests.post(
+    # Exécution de la requête avec retry automatique
+    session = get_session_with_retries()
+    response = session.post(
         API_URL,
         json={"query": query_get_demarche, "variables": variables},
         headers=headers
@@ -878,7 +911,9 @@ def get_demarche_dossiers_filtered(
     # Exécution de la requête
     print(f"[RECHERCHE] Exécution requête avec filtres serveur supportés...")
     
-    response = requests.post(
+    # Exécution de la requête avec retry automatique
+    session = get_session_with_retries()  # ✅ AJOUTE CETTE LIGNE
+    response = session.post(
         API_URL,
         json={"query": query_get_demarche, "variables": variables},
         headers=headers
@@ -912,7 +947,8 @@ def get_demarche_dossiers_filtered(
             
             variables["afterCursor"] = cursor
             
-            next_response = requests.post(
+            session = get_session_with_retries()  # ✅ AJOUTE
+            next_response = session.post(  # ✅ CHANGE requests → session
                 API_URL,
                 json={"query": query_get_demarche, "variables": variables},
                 headers=headers
@@ -1052,7 +1088,8 @@ def test_working_filter():
         "Content-Type": "application/json"
     }
     
-    response = requests.post(
+    session = get_session_with_retries()  # ✅ AJOUTE
+    response = session.post(
         API_URL,
         json={"query": query, "variables": variables},
         headers=headers
@@ -1127,7 +1164,8 @@ def get_dossier_geojson(dossier_number: int) -> Dict[str, Any]:
         "Accept": "application/json"
     }
     
-    response = requests.get(url, headers=headers)
+    session = get_session_with_retries()  # ✅ AJOUTE
+    response = session.get(url, headers=headers)
     response.raise_for_status()
     
     return response.json()
