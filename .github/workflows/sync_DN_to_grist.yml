@@ -3,7 +3,7 @@ name: Synchronisation Multi-Démarche DNC Occitanie
 on:
   # Exécution programmée (tous les jours à 23h00 UTC = 01h00 heure d'été française)
   schedule:
-    - cron: '0 7,12,20 * * *'
+    - cron: '0 0,12 * * *'
 
   # Permettre l'exécution manuelle avec options
   workflow_dispatch:
