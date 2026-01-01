@@ -85,6 +85,9 @@ def normalize_column_name(name, max_length=150):
     import re
     name = name.strip()
     name = re.sub(r'\s+', ' ', name)
+
+    # ✅ NOUVEAU : Supprimer les numéros de début type "1. ", "2. ", etc.
+    name = re.sub(r'^[\d]+[\.\)]\s*', '', name)
     
     # Supprimer les accents
     import unicodedata
@@ -438,7 +441,7 @@ def extract_demandeur_data(dossier, demandeur_type):
             "nom": demandeur.get("nom"),
             "prenom": demandeur.get("prenom"),
             "email": email,
-            # ✅ UNIQUEMENT pour PP
+            #  UNIQUEMENT pour PP
             "usager_email": usager.get("email", ""),
             "prenom_mandataire": dossier.get("prenomMandataire", ""),
             "nom_mandataire": dossier.get("nomMandataire", ""),
@@ -453,7 +456,7 @@ def extract_demandeur_data(dossier, demandeur_type):
         return {
             "dossier_number": dossier_number,
             "type": demandeur_type,
-            # ✅ UNIQUEMENT usager_email pour PM
+            #  UNIQUEMENT usager_email pour PM
             "usager_email": usager.get("email", ""),
             
             # Identifiants
@@ -964,7 +967,7 @@ class GristClient:
                             dossier_num = fields['number']
                             dossier_dict[str(dossier_num)] = record_id
 
-            log(f"Nombre de dossiers existants identifiés: {len(dossier_dict)}")
+            log(f"  Table '{table_id}': {len(dossier_dict)} enregistrements existants")
             return dossier_dict
         else:
             log_error(f"Erreur lors de la récupération des enregistrements existants: {response.status_code} - {response.text}")
@@ -1737,7 +1740,7 @@ def process_demarche_for_grist(client, demarche_number):
             cache_dossiers = client.get_existing_dossier_numbers(table_ids["dossier_table_id"])
             cache_champs = client.get_existing_dossier_numbers(table_ids["champ_table_id"])
             
-            # ✅ Annotations : seulement si la table existe
+            #  Annotations : seulement si la table existe
             cache_annotations = {}
             if table_ids.get("annotations"):
                 cache_annotations = client.get_existing_dossier_numbers(table_ids.get("annotations") )
@@ -1778,7 +1781,7 @@ def process_demarche_for_grist(client, demarche_number):
             
             # 3. Table des annotations
             if annotation_records and table_ids.get("annotations"):
-                annotation_table_id = table_ids.get("annotations")   # ✅ Récupérer l'ID une fois
+                annotation_table_id = table_ids.get("annotations")   #  Récupérer l'ID une fois
                 log(f"  Upsert par lot de {len(annotation_records)} enregistrements d'annotations...")
                 success_annotations = client.upsert_multiple_dossiers_in_grist(annotation_table_id, annotation_records, existing_records=cache_annotations)
                 
@@ -1825,7 +1828,7 @@ def process_demarche_for_grist(client, demarche_number):
     
                             success, errors = process_repetables_batch(
                                 client,
-                                dossier_batch_data,  # ✅ Passer les dossiers
+                                dossier_batch_data,  #  Passer les dossiers
                                 {normalized_block: block_table_id},
                                 {normalized_block: column_types["repetable_blocks"][normalized_block]},
                                 problematic_ids=problematic_descriptor_ids,
@@ -1959,8 +1962,8 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                 table_ids = {
                     "dossier_table_id": table_result.get("dossiers"),
                     "champ_table_id": table_result.get("champs"), 
-                    "annotations": table_result.get("annotations"),  # ✅ Nouvelle clé
-                    "annotation_table_id": table_result.get("annotations"),  # ✅ Rétro-compatibilité
+                    "annotations": table_result.get("annotations"),  #  Nouvelle clé
+                    "annotation_table_id": table_result.get("annotations"),  #  Rétro-compatibilité
                 }
                 
                 if "repetable_blocks" in table_result:
@@ -1970,7 +1973,7 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                     table_ids["demandeurs"] = table_result["demandeurs"]
                 if "demandeur_type" in table_result:
                     table_ids["demandeur_type"] = table_result["demandeur_type"]
-                # ✅ NOUVELLE LIGNE
+                #  NOUVELLE LIGNE
                 if "instructeurs" in table_result:
                     table_ids["instructeurs"] = table_result["instructeurs"]
 
@@ -2324,7 +2327,7 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
             # Créer les colonnes UNE SEULE FOIS après la préparation
             if table_ids.get("annotations"):
                 
-                # ✅ DÉDUPLICATION : Ne garder qu'une annotation par label unique
+                #  DÉDUPLICATION : Ne garder qu'une annotation par label unique
                 unique_annotations = {}
                 for ann in all_annotations_for_columns:
                     label = ann.get("label")
@@ -2336,7 +2339,7 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                 add_id_columns_based_on_annotations(
                     client, 
                     table_ids.get("annotations"), 
-                    unique_annotations_list  # ✅ Passer la liste dédupliquée
+                    unique_annotations_list  #  Passer la liste dédupliquée
     )
             # Effectuer les opérations d'upsert par lot
             if dossier_records:
@@ -2394,7 +2397,7 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                     if success:
                         log(f"   {len(demandeur_records)} demandeurs traités avec succès")
                     else:
-                        log_error(f"  ❌ Erreur lors du traitement des demandeurs")
+                        log_error(f"   Erreur lors du traitement des demandeurs")
                         
                 log(f"[TIMING] Après upsert demandeurs: {time.time() - batch_start:.1f}s")
 
@@ -2416,7 +2419,7 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                         if response.status_code == 200:
                             existing_records = response.json().get('records', [])
                         
-                        # ✅ UPSERT INTELLIGENT - Créer un mapping par instructeur_id
+                        #  UPSERT INTELLIGENT - Créer un mapping par instructeur_id
                         existing_map = {}
                         for record in existing_records:
                             fields = record.get('fields', {})
@@ -2477,7 +2480,7 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                                 log(f"  🗑️  {len(to_delete)} instructeur(s) supprimé(s)")
                                 operations_count += len(to_delete)
                             else:
-                                log_error(f"  ❌ Erreur suppression instructeurs: {delete_response.text}")
+                                log_error(f"   Erreur suppression instructeurs: {delete_response.text}")
                         
                         # 2. Mettre à jour les instructeurs existants
                         if to_update:
@@ -2487,29 +2490,29 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                                 json={"records": to_update}
                             )
                             if update_response.status_code in [200, 201]:
-                                log(f"  🔄 {len(to_update)} instructeur(s) mis à jour")
+                                log(f"   {len(to_update)} instructeur(s) mis à jour")
                                 operations_count += len(to_update)
                             else:
-                                log_error(f"  ❌ Erreur mise à jour instructeurs: {update_response.text}")
+                                log_error(f"   Erreur mise à jour instructeurs: {update_response.text}")
                         
                         # 3. Créer les nouveaux instructeurs
                         if to_create:
                             create_payload = {"records": [{"fields": r} for r in to_create]}
                             create_response = requests.post(url, headers=client.headers, json=create_payload)
                             if create_response.status_code in [200, 201]:
-                                log(f"  ✨ {len(to_create)} instructeur(s) créé(s)")
+                                log(f"   {len(to_create)} instructeur(s) créé(s)")
                                 operations_count += len(to_create)
                             else:
-                                log_error(f"  ❌ Erreur création instructeurs: {create_response.text}")
+                                log_error(f"   Erreur création instructeurs: {create_response.text}")
                         
                         # Résumé
                         if operations_count == 0:
-                            log(f"  ✅ Table instructeurs à jour (aucun changement)")
+                            log(f"   Table instructeurs à jour (aucun changement)")
                         else:
-                            log(f"  ✅ Table instructeurs synchronisée ({operations_count} opération(s))")
+                            log(f"   Table instructeurs synchronisée ({operations_count} opération(s))")
                             
                     else:
-                        log("  ℹ️  Aucun instructeur trouvé pour cette démarche")
+                        log("   Aucun instructeur trouvé pour cette démarche")
 
                 log(f"[TIMING] Après instructeurs: {time.time() - batch_start:.1f}s")
             
