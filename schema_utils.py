@@ -6,6 +6,7 @@ VERSION AMÉLIORÉE - Compatible avec le code existant
 Ajoute des fonctions optimisées tout en gardant les fonctions existantes
 CORRECTION : Gestion des doublons de noms de colonnes
 NOUVEAU : Tables séparées par bloc répétable
+CORRECTION : Format "fields" pour les colonnes dynamiques
 """
 
 import requests
@@ -375,6 +376,7 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
     - Les PieceJustificativeChamp sont traités AVANT le filtrage
     - Gestion des doublons de noms de colonnes avec suffixes numériques
     - Tables séparées par bloc répétable
+    - FORMAT FIELDS pour les colonnes dynamiques
     
     FONCTION EXISTANTE - GARDÉE POUR COMPATIBILITÉ
     
@@ -483,9 +485,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                     for suffix in rib_suffixes:
                         rib_col_id = f"{normalized_label}_{suffix}"
                         if not any(col["id"] == rib_col_id for col in champ_columns):
+                            # ✅ FORMAT AVEC FIELDS
                             champ_columns.append({
                                 "id": rib_col_id,
-                                "type": "Text"
+                                "fields": {
+                                    "type": "Text",
+                                    "label": f"{champ_label} - {suffix}"
+                                }
                             })
                 
                 # Ajouter aussi la colonne principale pour le nom du fichier
@@ -496,9 +502,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                     normalized_label = f"{base_label}_{counter}"
                     counter += 1
                 
+                # ✅ FORMAT AVEC FIELDS
                 champ_columns.append({
                     "id": normalized_label,
-                    "type": "Text"
+                    "fields": {
+                        "type": "Text",
+                        "label": champ_label
+                    }
                 })
             
             # Maintenant filtrer les types problématiques
@@ -593,9 +603,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                     normalized_label = f"{base_label}_{counter}"
                     counter += 1
                 
+                # ✅ FORMAT AVEC FIELDS
                 champ_columns.append({
                     "id": normalized_label,
-                    "type": column_type
+                    "fields": {
+                        "type": column_type,
+                        "label": champ_label
+                    }
                 })
             
             # ✨ Colonnes Commune
@@ -612,9 +626,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                         commune_col_id = f"{base_col}_{counter}"
                         counter += 1
                     
+                    # ✅ FORMAT AVEC FIELDS
                     champ_columns.append({
                         "id": commune_col_id,
-                        "type": "Text"
+                        "fields": {
+                            "type": "Text",
+                            "label": f"{champ_label} - {suffix}"
+                        }
                     })
             
             # ✨ Colonnes Pays (nom et code)
@@ -631,9 +649,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                         pays_col_id = f"{base_col}_{counter}"
                         counter += 1
                     
+                    # ✅ FORMAT AVEC FIELDS
                     champ_columns.append({
                         "id": pays_col_id,
-                        "type": "Text"
+                        "fields": {
+                            "type": "Text",
+                            "label": f"{champ_label} - {suffix}"
+                        }
                     })
             
             # ✨ Colonnes Région (nom et code)
@@ -650,9 +672,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                         region_col_id = f"{base_col}_{counter}"
                         counter += 1
                     
+                    # ✅ FORMAT AVEC FIELDS
                     champ_columns.append({
                         "id": region_col_id,
-                        "type": "Text"
+                        "fields": {
+                            "type": "Text",
+                            "label": f"{champ_label} - {suffix}"
+                        }
                     })
 
             # ✨ Colonnes Département (nom et code)
@@ -669,9 +695,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                         dept_col_id = f"{base_col}_{counter}"
                         counter += 1
                     
+                    # ✅ FORMAT AVEC FIELDS
                     champ_columns.append({
                         "id": dept_col_id,
-                        "type": "Text"
+                        "fields": {
+                            "type": "Text",
+                            "label": f"{champ_label} - {suffix}"
+                        }
                     })
 
     # Traiter les descripteurs d'annotations
@@ -689,8 +719,10 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
             # Pour les annotations, enlever le préfixe "annotation_" pour le nom de colonne
             if champ_label.startswith("annotation_"):
                 annotation_label = normalize_column_name(champ_label[11:])  # enlever "annotation_"
+                display_label = champ_label[11:]  # Label sans préfixe pour affichage
             else:
                 annotation_label = normalize_column_name(champ_label)
+                display_label = champ_label
             
             column_type = determine_column_type(champ_type, descriptor.get("__typename"))
             
@@ -701,9 +733,13 @@ def create_columns_from_schema(demarche_schema, demarche_number=None):
                 annotation_label = f"{base_label}_{counter}"
                 counter += 1
             
+            # ✅ FORMAT AVEC FIELDS
             annotation_columns.append({
                 "id": annotation_label,
-                "type": column_type
+                "fields": {
+                    "type": column_type,
+                    "label": display_label
+                }
             })
 
     # Préparer le résultat
@@ -922,7 +958,6 @@ def update_grist_tables_from_schema(client, demarche_number, column_types, probl
             instructeurs_columns = create_instructeurs_columns()
             add_missing_columns(instructeurs_table_id, instructeurs_columns)
 
-        # ✅ DÉSINDENTE TOUT CE QUI SUIT (même niveau que "if not instructeurs_table")
         # Retourner les IDs des tables
         result = {
             "dossiers": dossier_table_id,
