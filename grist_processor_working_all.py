@@ -214,12 +214,12 @@ def detect_column_types_from_multiple_dossiers(dossiers_data, problematic_ids=No
     def determine_column_type(value):
         if value is None:
             return "Text"
+        elif isinstance(value, bool):
+            return "Bool"
         elif isinstance(value, int):
             return "Int"
         elif isinstance(value, float):
             return "Numeric"
-        elif isinstance(value, bool):
-            return "Bool"
         elif isinstance(value, (datetime, str)) and (
             isinstance(value, datetime) or 
             any(fmt in value for fmt in ["-", "T", ":"])
@@ -273,6 +273,13 @@ def detect_column_types_from_multiple_dossiers(dossiers_data, problematic_ids=No
             
             if champ_label not in unique_champ_columns:
                 column_type = determine_column_type(champ.get("value"))
+
+                # ← AJOUTE ICI
+            if champ.get("type") == "YesNoChamp":
+                print(f"DEBUG detect_column: {champ['label']}")
+                print(f"  Value: {champ.get('value')} (type: {type(champ.get('value'))})")
+                print(f"  Type déterminé: {column_type}")
+
                 unique_champ_columns[champ_label] = column_type
 
     
@@ -2183,7 +2190,10 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                 
                 # Préparer champ_record
                 champ_record = {"dossier_number": dossier_num}
-                champ_column_types = {col["id"]: col["type"] for col in column_types["champs"]}
+                champ_column_types = {
+                    col["id"]: col.get("type") or col.get("fields", {}).get("type", "Text")
+                    for col in column_types["champs"]
+                }
                 
                 champ_ids = []
                 for champ in flat_data["champs"]:
@@ -2193,9 +2203,8 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                     champ_record["champ_id"] = "_".join(champ_ids)
                 
                 for champ in flat_data["champs"]:
-                    if champ["type"] in ["HeaderSectionChamp", "ExplicationChamp"]:
+                    if champ.get("type") in ["HeaderSectionChamp", "ExplicationChamp"]:
                         continue
-                    
                     normalized_label = normalize_column_name(champ["label"])
                     value = champ.get("value", "")
                     if champ["type"] in ["CarteChamp", "AddressChamp", "SiretChamp"] and champ.get("json_value"):
@@ -2209,7 +2218,10 @@ def process_demarche_for_grist_optimized(client, demarche_number, parallel=True,
                 
                 # Préparer annotation_record
                 annotation_record = {"dossier_number": dossier_num}
-                annotation_column_types = {col["id"]: col["type"] for col in column_types["annotations"]}
+                annotation_column_types = {
+                col["id"]: col.get("type") or col.get("fields", {}).get("type", "Text")
+                for col in column_types["annotations"]
+                }
                 
                 annotation_ids = []
                 for annotation in flat_data["annotations"]:
