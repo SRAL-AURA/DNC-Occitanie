@@ -169,7 +169,7 @@ jobs:
         eval $CMD
 
     - name: Upload des logs
-      if: always()
+      if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
         name: sync-logs-${{ github.run_number }}
@@ -178,9 +178,9 @@ jobs:
         if-no-files-found: ignore
 
     - name: Notification de fin
-      if: always()
+      if: ${{ always() }}
       run: |
-        if [ ${{ job.status }} == 'success' ]; then
+        if [ "${{ job.status }}" == "success" ]; then
           echo "✅ Synchronisation multi-démarche terminée avec succès"
           echo "📊 ${{ needs.validate-config.outputs.demarches-count }} démarches configurées"
         else
@@ -193,7 +193,7 @@ jobs:
     name: Notifications
     runs-on: ubuntu-latest
     needs: [validate-config, sync-demarches]
-    if: always()
+    if: ${{ always() }}
 
     steps:
     - name: Notification webhook (optionnelle)
